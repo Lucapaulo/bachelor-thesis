@@ -1,0 +1,177 @@
+#!/bin/bash
+
+dir=${PWD##*/}
+cd ..
+month=${PWD##*/}
+cd $dir
+file=silk_${month}_${dir}
+
+#convert rw to csv
+rwcut ${file}.rw --fields=1,3,4,5,6,7,8 > ${file}.csv
+
+#create ports file
+cat > ports << EOF
+443|6|HTTPS
+80|6|HTTP
+53|17|DNS
+443|17|QUIC
+80|17|QUIC
+5222|6|XMPP
+8080|6|HTTP
+8081|6|Sun Proxy Admin Service
+1935|6|RTMP
+22|6|SSH
+25|6|SMTP
+123|17|NTP
+445|6|Microsoft DS
+993|6|IMAPS
+119|6|NNTP
+563|6|NNTPS
+587|6|SMTP
+3074|17|XBox Live
+3478|17|STUN/TURN
+5349|17|STUN/TURN
+4500|6|IPSec NAT Traversal
+4500|17|IPSec NAT Traversal
+9339|17|Clash of Clans
+514|6|Remote Shell
+52|17|XNS
+9050|6|Tor
+9051|6|Tor
+1194|6|OpenVPN
+1194|17|OpenVPN
+8999|17|Brodos Crypto Trade Protocol
+8999|6|Brodos Crypto Trade Protocol
+2086|6|GNUnet
+810|6|FCP
+554|6|RTSP
+EOF
+#create protocol_numbers file
+cat > protocol_numbers << EOF
+1|ICMP
+17|UDP
+255|Reserved
+41|IPv6
+47|GRE
+49|BNA
+4|IPv4
+50|ESP
+58|IPv6-ICMP
+6|TCP
+107|A/N
+126|CRTP
+35|IDPR
+59|IPv6-NoNxt
+90|Sprite-RPC
+51|AH
+52|I-NLSP
+33|DCCP
+135|Mobility Header
+48|DSR
+74|WSN
+66|RVD
+132|SCTP
+26|Leaf-2
+253|Use for experimentation and testing
+254|Use for experimentation and testing
+EOF
+###replace ip src/dst by ip protocol version
+cat > pattern << EOF
+.
+:
+EOF
+
+awk -v FS='|' -v OFS='|' '
+NR==FNR { a[$1]; next }                         # store "pattern" to a arr
+        { for(i in a)                           # go thru whole a for each record
+              if(index($1,i))                   # if "pattern" matches $1
+                  print i,$2,$3,$4,$5,$6,$7     # print with replacement
+        }
+' pattern ${file}.csv > tmp.csv
+
+mv tmp.csv ${file}.csv
+
+#add header
+sed -i 1i'ipversion|srcport|dstport|protocol|packets|bytes|flags' ${file}.csv
+#remove whitespaces
+sed 's/[[:space:]]*|[[:space:]]*/|/g' ${file}.csv > tmp.csv
+mv tmp.csv ${file}.csv
+#sub ./: with 4/6 in ipversion
+awk -v FS='|' -v OFS='|' '
+{gsub(/\./,"4",$1); print}
+' ${file}.csv > tmp.csv
+
+awk -v FS='|' -v OFS='|' '
+{gsub(/\:/,"6",$1); print}
+' tmp.csv > ${file}.csv
+
+###group by transport protocol
+awk -v FS='|' -v OFS='|' '
+NR>1{a[$1,$4]=$1;b[$1,$4]=$4;col1[$1,$4]+=$5;col2[$1,$4]+=$6}
+END {for (i in col1) print a[i], b[i], col1[i], col2[i]}
+' ${file}.csv > protocols_${file}.csv
+
+awk -v FS='|' -v OFS='|' '
+NR==FNR{
+a[$1]=$1;
+b[$1]=$2;
+next}
+{ if (a[$2]==$2)
+        {print $1,b[$2],$3,$4;}
+       else if ($2>142 && $2<253)
+       {print $1,"Unassigned",$3,$4;}
+       else print $1,$2,$3,$4}
+' protocol_numbers protocols_${file}.csv > tmp.csv
+
+mv tmp.csv protocols_${file}.csv
+
+sort -o protocols_${file}.csv -k 2 -t '|' protocols_${file}.csv
+sed -i 1i'ip version|protocol|packets|bytes' protocols_${file}.csv
+
+###group by application
+wk -v FS='|' -v OFS='|' '
+NR==FNR{
+a[$1,$2]=$1;
+b[$1,$2]=$2;
+c[$1,$2]=$3;
+next}
+FNR>1{ if ($4!=17 && $4!=6)
+        {print $1,"Not TCP/UDP",$5,$6;}
+  else if (a[$2,$4]==$2 && b[$2,$4]==$4)
+        {print $1,c[$2,$4],$5,$6;}
+  else if (a[$3,$4]==$3 && b[$3,$4]==$4)
+        {print $1,c[$3,$4],$5,$6;}
+  else if ($2>6880 && $2<7000)
+        {print $1,"BitTorrent",$5,$6;}
+  else if ($3>6880 && $3<7000)
+        {print $1,"BitTorrent",$5,$6;}
+  else print $1,"unidentified",$5,$6}
+' ports ${file}.csv > applications_${file}.csv
+
+awk -v FS='|' -v OFS='|' '
+{a[$1,$2]=$1;b[$1,$2]=$2;c[$1,$2]+=$3;d[$1,$2]+=$4}
+END {for (i in a) print a[i], b[i], c[i], d[i]}
+' applications_${file}.csv > tmp.csv
+
+mv tmp.csv applications_${file}.csv
+
+sort -o applications_${file}.csv -k 2 -t '|' applications_${file}.csv
+sed -i 1i'ip version|application name|packets|bytes' applications_${file}.csv
+
+
+###group by source/destination protocol and IP version
+awk -v FS='|' -v OFS='|' '
+NR>1{c[$1,$3]=$1;a[$1,$3]=$3;b[$1,$3]+=$6}
+END {for (i in a){print c[i], a[i], b[i];}}
+' ${file}.csv > dst_port_ip_${file}.csv
+sed -i 1i'ip version|port|bytes' dst_port_ip_${file}.csv
+
+awk -v FS='|' -v OFS='|' '
+NR>1{c[$1,$2]=$1;a[$1,$2]=$2;b[$1,$2]+=$6}
+END {for (i in a){print c[i], a[i], b[i];}}
+' ${file}.csv > src_port_ip_${file}.csv
+sed -i 1i'ip version|port|bytes' src_port_ip_${file}.csv
+
+rm pattern
+rm ports
+rm protocol_numbers

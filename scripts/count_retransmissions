@@ -1,0 +1,21 @@
+#!/bin/bash
+
+cap_files='pcaps/*.pcap'
+
+for file in $cap_files
+do
+        echo "processing file: $file"
+        tshark -r $file -Y frame[9]==06 | wc -l >> tcp.csv
+        tshark -r $file -Y frame[6]==06 | wc -l >> tcp.csv
+        tshark -r $file -Y tcp.analysis.retransmission | wc -l >> ret.csv
+done
+
+awk '{s+=$1} END {print s}' ret.csv > retransmitted_packets
+awk '{s+=$1} END {print s}' tcp.csv > tcp_packets
+
+rm ret.csv
+rm tcp.csv
+
+RET=$(head -n 1 retransmitted_packets)
+TCP=$(head -n 1 tcp_packets)
+echo "retransmission rate: $(( RET / TCP ))"

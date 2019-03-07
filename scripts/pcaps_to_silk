@@ -1,0 +1,12 @@
+#!/bin/bash
+
+cap_files='pcaps/*.pcap'
+
+for file in $cap_files
+do
+        echo $file >> input
+done
+
+rwp2yaf2silk --yaf-args=--caplist --in=input --out=silk_03_B.rw
+
+rm input

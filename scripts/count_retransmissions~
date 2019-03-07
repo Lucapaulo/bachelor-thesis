@@ -1,0 +1,13 @@
+#!/bin/bash
+
+cap_files='pcaps/*.pcap'
+
+for file in $cap_files
+do
+        echo "processing file: $file"
+        tshark -r $file -Y tcp.analysis.retransmission | wc -l >> ret.csv
+done
+
+awk '{s+=$1} END {print s}' ret.csv > retransmitted_packets
+
+rm ret.csv

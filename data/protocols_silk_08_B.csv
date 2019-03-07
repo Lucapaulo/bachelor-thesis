@@ -1,0 +1,34 @@
+ip version|protocol|packets|bytes
+4|AH|1|208
+4|any local network|3|90
+4|EGP|3|102
+6|ESP|129495|21807508
+4|ESP|25625112|10748044255
+4|GRE|1847327|391825252
+4|ICMP|54747510|10957199748
+4|I-NLSP|270|5670
+4|IPv4|5866|2529417
+4|IPv6|19236|1833198
+6|IPv6-ICMP|10935227|897846842
+4|Mobility Header|659|62131
+6|TCP|138745033|85585748189
+4|TCP|5233190095|1860188356459
+4|UDP|1303534863|541666230462
+6|UDP|32646540|5420617538
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|1|40
+4|Unassigned|2|80
+4|Use for experimentation and testing|1|20
+4|Use for experimentation and testing|1|20

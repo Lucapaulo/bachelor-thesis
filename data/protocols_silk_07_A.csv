@@ -1,0 +1,28 @@
+ip version|protocol|packets|bytes
+4|AH|548|209584
+4|EGP|3|102
+4|ESP|6566850|3686608636
+4|GRE|887533|173081416
+4|ICMP|10203466|2033159156
+4|IPv6|2795|1224010
+6|IPv6-ICMP|3269036|251473501
+4|Reserved|1656|99280
+4|SUN-ND|2|48
+4|TCP|1488098352|1512787814181
+6|TCP|8682936|3019945251
+6|UDP|10412138|1813131030
+4|UDP|422947004|268548330599
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|1|20
+4|Unassigned|2|40
+4|Unassigned|2|40
+4|Unassigned|2|40
+4|Unassigned|2|42
+4|Unassigned|3|60
+4|Unassigned|3|63
+4|Unassigned|4|80
+4|Unassigned|4|80
+4|Unassigned|5|103
+4|Use for experimentation and testing|2|40
+4|Use for experimentation and testing|3|60
