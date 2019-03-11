@@ -1,0 +1,19 @@
+#!/bin/bash
+
+echo "The password is >>password<<"
+cd
+rm -rf ~/.local/share/Trash/*
+sudo apt-get update
+~/configure.sh
+sudo apt-get -y install python-pip
+sudo pip install ecdsa
+git clone https://github.com/tomato42/tlslite-ng.git
+cd tlslite-ng
+sudo python setup.py install
+sudo make test
+cp -f ../quic-data/www.example.org/index.html ./tests/
+cd ..
+cp -f bachelor-thesis/quic/files/generate_graphs.py CS244-16-Reproducing-QUIC/experiment_scripts/
+cp -f bachelor-thesis/quic/files/run_test.sh CS244-16-Reproducing-QUIC/experiment_scripts/
+cp -f bachelor-thesis/quic/files/httpsserver.sh tlslite-ng/tests/
+cp -f bachelor-thesis/quic/files/httpsclient.py tlslite-ng/tests/
