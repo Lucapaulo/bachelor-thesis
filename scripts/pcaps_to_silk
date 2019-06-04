@@ -1,5 +1,10 @@
 #!/bin/bash
 
+dir=${PWD##*/}
+cd ..
+month=${PWD##*/}
+cd $dir
+
 cap_files='pcaps/*.pcap'
 
 for file in $cap_files
@@ -7,6 +12,6 @@ do
         echo $file >> input
 done
 
-rwp2yaf2silk --yaf-args=--caplist --in=input --out=silk_03_B.rw
+rwp2yaf2silk --yaf-args=--caplist --in=input --out=silk_${month}_${dir}.rw
 
 rm input
